@@ -59,7 +59,8 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 	// NVIDIA 3090Ti has 84 SMs, so max runnable instances = 84 * 256 = 21504
 	// the below code should reduce GPUS as 84 core machine (running at 1Ghz)
 
-	rc4s := NewCipher(step_3[:]) // new rc4 cipher, pkg from golang src, modified to avoid allocation
+	var rc4s Cipher
+	NewCipherInto(&rc4s, step_3[:]) // new rc4 cipher, pkg from golang src, modified to avoid allocation
 	rc4s.XORKeyStream(step_3[:], step_3[:])
 	lhash := fnv1a.HashBytes64(step_3[:])
 	prev_lhash := lhash // this is used to to randomly switch patterns
@@ -107,11 +108,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				step_3[pos2], step_3[pos1] = bits.Reverse8(step_3[pos1]), bits.Reverse8(step_3[pos2])
 			}
 		case 1:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] << (step_3[i] & 3)   // shift left
 				step_3[i] = bits.RotateLeft8(step_3[i], 1) // rotate  bits by 1
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				step_3[i] += step_3[i]                     // +
 				//INSERT_RANDOM_CODE_END
 			}
@@ -125,11 +127,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 3:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = bits.RotateLeft8(step_3[i], 3)              // rotate  bits by 3
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)              // rotate  bits by 1
 				//INSERT_RANDOM_CODE_END
 			}
@@ -143,10 +146,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 5:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				step_3[i] = step_3[i] << (step_3[i] & 3)                 // shift left
 				step_3[i] = step_3[i] >> (step_3[i] & 3)                 // shift right
 				//INSERT_RANDOM_CODE_END
@@ -179,9 +183,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 9:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
 				step_3[i] = step_3[i] >> (step_3[i] & 3)               // shift right
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
@@ -197,11 +202,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 11:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)              // rotate  bits by 1
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)              // rotate  bits by 5
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				//INSERT_RANDOM_CODE_END
 			}
@@ -215,10 +221,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 13:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 1) // rotate  bits by 1
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] = step_3[i] >> (step_3[i] & 3)   // shift right
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
 				//INSERT_RANDOM_CODE_END
@@ -233,11 +240,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 15:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				step_3[i] = step_3[i] << (step_3[i] & 3)               // shift left
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] -= (step_3[i] ^ 97)                          // XOR and -
 				//INSERT_RANDOM_CODE_END
 			}
@@ -251,9 +259,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 17:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] *= step_3[i]                     // *
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
 				step_3[i] = ^step_3[i]                     // binary NOT operator
@@ -278,21 +287,23 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 20:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] & p2                   // AND
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = bits.Reverse8(step_3[i])                   // reverse bits
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				//INSERT_RANDOM_CODE_END
 			}
 		case 21:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 1) // rotate  bits by 1
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] += step_3[i]                     // +
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 22:
@@ -305,12 +316,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 23:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 3)               // rotate  bits by 3
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)               // rotate  bits by 1
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 24:
@@ -341,10 +353,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 27:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				//INSERT_RANDOM_CODE_END
@@ -359,18 +372,20 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 29:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] *= step_3[i]                   // *
-				step_3[i] = step_3[i] ^ step_3[pos2]     // XOR
+				step_3[i] = step_3[i] ^ p2     // XOR
 				step_3[i] = step_3[i] >> (step_3[i] & 3) // shift right
 				step_3[i] += step_3[i]                   // +
 				//INSERT_RANDOM_CODE_END
 			}
 		case 30:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				step_3[i] = step_3[i] << (step_3[i] & 3)               // shift left
@@ -413,12 +428,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 35:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] += step_3[i]                     // +
 				step_3[i] = ^step_3[i]                     // binary NOT operator
 				step_3[i] = bits.RotateLeft8(step_3[i], 1) // rotate  bits by 1
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 36:
@@ -449,21 +465,23 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 39:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = step_3[i] >> (step_3[i] & 3)               // shift right
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 40:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i]))  // rotate  bits by random
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 41:
@@ -485,11 +503,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 43:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2] // AND
+				step_3[i] = step_3[i] & p2 // AND
 				step_3[i] += step_3[i]               // +
-				step_3[i] = step_3[i] & step_3[pos2] // AND
+				step_3[i] = step_3[i] & p2 // AND
 				step_3[i] -= (step_3[i] ^ 97)        // XOR and -
 				//INSERT_RANDOM_CODE_END
 			}
@@ -503,11 +522,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 45:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)               // rotate  bits by 5
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)               // rotate  bits by 5
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
 				//INSERT_RANDOM_CODE_END
 			}
@@ -521,10 +541,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 47:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
 				step_3[i] = step_3[i] << (step_3[i] & 3)   // shift left
 				//INSERT_RANDOM_CODE_END
@@ -557,9 +578,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 51:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
@@ -584,10 +606,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 54:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.Reverse8(step_3[i]) // reverse bits
-				step_3[i] = step_3[i] ^ step_3[pos2] // XOR
+				step_3[i] = step_3[i] ^ p2 // XOR
 				step_3[i] = ^step_3[i]               // binary NOT operator
 				step_3[i] = ^step_3[i]               // binary NOT operator
 				//INSERT_RANDOM_CODE_END
@@ -620,11 +643,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 58:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.Reverse8(step_3[i])                   // reverse bits
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] += step_3[i]                                 // +
 				//INSERT_RANDOM_CODE_END
 			}
@@ -638,9 +662,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 60:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] = ^step_3[i]                     // binary NOT operator
 				step_3[i] *= step_3[i]                     // *
 				step_3[i] = bits.RotateLeft8(step_3[i], 3) // rotate  bits by 3
@@ -656,9 +681,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 62:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = ^step_3[i]                                 // binary NOT operator
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				step_3[i] += step_3[i]                                 // +
@@ -674,9 +700,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 64:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = bits.Reverse8(step_3[i])                   // reverse bits
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
 				step_3[i] *= step_3[i]                                 // *
@@ -710,12 +737,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 68:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = ^step_3[i]                                 // binary NOT operator
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 69:
@@ -728,9 +756,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 70:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] *= step_3[i]                                 // *
 				step_3[i] = step_3[i] >> (step_3[i] & 3)               // shift right
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
@@ -746,11 +775,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 72:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.Reverse8(step_3[i])                     // reverse bits
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				step_3[i] = step_3[i] << (step_3[i] & 3)                 // shift left
 				//INSERT_RANDOM_CODE_END
 			}
@@ -764,20 +794,22 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 74:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] *= step_3[i]                     // *
 				step_3[i] = bits.RotateLeft8(step_3[i], 3) // rotate  bits by 3
 				step_3[i] = bits.Reverse8(step_3[i])       // reverse bits
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 75:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] *= step_3[i]                                   // *
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4)   // rotate  bits by 4
 				//INSERT_RANDOM_CODE_END
 			}
@@ -818,12 +850,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 80:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = step_3[i] << (step_3[i] & 3)                // shift left
 				step_3[i] += step_3[i]                                  // +
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 81:
@@ -836,9 +869,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 82:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]     // XOR
+				step_3[i] = step_3[i] ^ p2     // XOR
 				step_3[i] = ^step_3[i]                   // binary NOT operator
 				step_3[i] = ^step_3[i]                   // binary NOT operator
 				step_3[i] = step_3[i] >> (step_3[i] & 3) // shift right
@@ -863,10 +897,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 85:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] >> (step_3[i] & 3)                // shift right
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = step_3[i] << (step_3[i] & 3)                // shift left
 				//INSERT_RANDOM_CODE_END
@@ -917,38 +952,42 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 91:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4)   // rotate  bits by 4
 				step_3[i] = bits.Reverse8(step_3[i])                     // reverse bits
 				//INSERT_RANDOM_CODE_END
 			}
 		case 92:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
 				step_3[i] = ^step_3[i]                                   // binary NOT operator
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 93:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				step_3[i] *= step_3[i]                                 // *
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] += step_3[i]                                 // +
 				//INSERT_RANDOM_CODE_END
 			}
 		case 94:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)              // rotate  bits by 1
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				step_3[i] = step_3[i] << (step_3[i] & 3)                // shift left
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1025,11 +1064,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 103:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)              // rotate  bits by 1
 				step_3[i] = bits.Reverse8(step_3[i])                    // reverse bits
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1070,20 +1110,22 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 108:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = ^step_3[i]                                 // binary NOT operator
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				//INSERT_RANDOM_CODE_END
 			}
 		case 109:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] *= step_3[i]                                  // *
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2)  // rotate  bits by 2
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1133,30 +1175,33 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 115:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)              // rotate  bits by 5
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], 3)              // rotate  bits by 3
 				//INSERT_RANDOM_CODE_END
 			}
 		case 116:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] & p2                     // AND
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
 				step_3[i] = step_3[i] << (step_3[i] & 3)                 // shift left
 				//INSERT_RANDOM_CODE_END
 			}
 		case 117:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] << (step_3[i] & 3)   // shift left
 				step_3[i] = bits.RotateLeft8(step_3[i], 3) // rotate  bits by 3
 				step_3[i] = step_3[i] << (step_3[i] & 3)   // shift left
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 118:
@@ -1169,20 +1214,22 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 119:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.Reverse8(step_3[i])                   // reverse bits
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				step_3[i] = ^step_3[i]                                 // binary NOT operator
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 120:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				step_3[i] *= step_3[i]                                 // *
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = bits.Reverse8(step_3[i])                   // reverse bits
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1205,20 +1252,22 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 123:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				step_3[i] = ^step_3[i]                     // binary NOT operator
 				step_3[i] = bits.RotateLeft8(step_3[i], 3) // rotate  bits by 3
 				step_3[i] = bits.RotateLeft8(step_3[i], 3) // rotate  bits by 3
 				//INSERT_RANDOM_CODE_END
 			}
 		case 124:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = ^step_3[i]                                 // binary NOT operator
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1241,12 +1290,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 127:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] << (step_3[i] & 3) // shift left
 				step_3[i] *= step_3[i]                   // *
-				step_3[i] = step_3[i] & step_3[pos2]     // AND
-				step_3[i] = step_3[i] ^ step_3[pos2]     // XOR
+				step_3[i] = step_3[i] & p2     // AND
+				step_3[i] = step_3[i] ^ p2     // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 128:
@@ -1286,30 +1336,33 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 132:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = bits.Reverse8(step_3[i])                   // reverse bits
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				//INSERT_RANDOM_CODE_END
 			}
 		case 133:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				step_3[i] = step_3[i] << (step_3[i] & 3)               // shift left
 				//INSERT_RANDOM_CODE_END
 			}
 		case 134:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = ^step_3[i]                                 // binary NOT operator
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)             // rotate  bits by 1
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 135:
@@ -1322,11 +1375,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 136:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] >> (step_3[i] & 3)   // shift right
 				step_3[i] -= (step_3[i] ^ 97)              // XOR and -
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1340,10 +1394,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 138:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2] // XOR
-				step_3[i] = step_3[i] ^ step_3[pos2] // XOR
+				step_3[i] = step_3[i] ^ p2 // XOR
+				step_3[i] = step_3[i] ^ p2 // XOR
 				step_3[i] += step_3[i]               // +
 				step_3[i] -= (step_3[i] ^ 97)        // XOR and -
 				//INSERT_RANDOM_CODE_END
@@ -1358,11 +1413,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 140:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)             // rotate  bits by 1
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1376,18 +1432,20 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 142:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				step_3[i] = bits.Reverse8(step_3[i])                   // reverse bits
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				//INSERT_RANDOM_CODE_END
 			}
 		case 143:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], 3) // rotate  bits by 3
 				step_3[i] = step_3[i] >> (step_3[i] & 3)   // shift right
 				step_3[i] = step_3[i] << (step_3[i] & 3)   // shift left
@@ -1412,11 +1470,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 146:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				step_3[i] = step_3[i] << (step_3[i] & 3)                 // shift left
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1430,30 +1489,33 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 148:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
 				step_3[i] = step_3[i] << (step_3[i] & 3)   // shift left
 				step_3[i] -= (step_3[i] ^ 97)              // XOR and -
 				//INSERT_RANDOM_CODE_END
 			}
 		case 149:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2] // XOR
+				step_3[i] = step_3[i] ^ p2 // XOR
 				step_3[i] = bits.Reverse8(step_3[i]) // reverse bits
 				step_3[i] -= (step_3[i] ^ 97)        // XOR and -
 				step_3[i] += step_3[i]               // +
 				//INSERT_RANDOM_CODE_END
 			}
 		case 150:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] << (step_3[i] & 3) // shift left
 				step_3[i] = step_3[i] << (step_3[i] & 3) // shift left
 				step_3[i] = step_3[i] << (step_3[i] & 3) // shift left
-				step_3[i] = step_3[i] & step_3[pos2]     // AND
+				step_3[i] = step_3[i] & p2     // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 151:
@@ -1484,21 +1546,23 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 154:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)               // rotate  bits by 5
 				step_3[i] = ^step_3[i]                                   // binary NOT operator
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
 				//INSERT_RANDOM_CODE_END
 			}
 		case 155:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] -= (step_3[i] ^ 97)                            // XOR and -
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 156:
@@ -1529,12 +1593,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 159:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] -= (step_3[i] ^ 97)                           // XOR and -
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 160:
@@ -1547,10 +1612,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 161:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)              // rotate  bits by 5
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				//INSERT_RANDOM_CODE_END
@@ -1583,10 +1649,11 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 165:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = step_3[i] << (step_3[i] & 3)               // shift left
 				step_3[i] += step_3[i]                                 // +
 				//INSERT_RANDOM_CODE_END
@@ -1610,21 +1677,23 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 168:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)              // rotate  bits by 1
 				//INSERT_RANDOM_CODE_END
 			}
 		case 169:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)             // rotate  bits by 1
 				step_3[i] = step_3[i] << (step_3[i] & 3)               // shift left
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 170:
@@ -1682,27 +1751,30 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 176:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] *= step_3[i]                     // *
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
 				//INSERT_RANDOM_CODE_END
 			}
 		case 177:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2)   // rotate  bits by 2
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2)   // rotate  bits by 2
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 178:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				step_3[i] += step_3[i]                     // +
 				step_3[i] = ^step_3[i]                     // binary NOT operator
 				step_3[i] = bits.RotateLeft8(step_3[i], 1) // rotate  bits by 1
@@ -1718,11 +1790,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 180:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] >> (step_3[i] & 3)               // shift right
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] -= (step_3[i] ^ 97)                          // XOR and -
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1736,9 +1809,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 182:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)             // rotate  bits by 1
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
@@ -1754,12 +1828,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 184:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] << (step_3[i] & 3)   // shift left
 				step_3[i] *= step_3[i]                     // *
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 185:
@@ -1781,9 +1856,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 187:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] = ^step_3[i]                     // binary NOT operator
 				step_3[i] += step_3[i]                     // +
 				step_3[i] = bits.RotateLeft8(step_3[i], 3) // rotate  bits by 3
@@ -1799,20 +1875,22 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 189:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] -= (step_3[i] ^ 97)                          // XOR and -
 				//INSERT_RANDOM_CODE_END
 			}
 		case 190:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)             // rotate  bits by 5
 				step_3[i] = step_3[i] >> (step_3[i] & 3)               // shift right
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1835,29 +1913,32 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 193:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				step_3[i] = step_3[i] << (step_3[i] & 3)                // shift left
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)              // rotate  bits by 1
 				//INSERT_RANDOM_CODE_END
 			}
 		case 194:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = step_3[i] << (step_3[i] & 3)                // shift left
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 195:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2)   // rotate  bits by 2
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4)   // rotate  bits by 4
 				//INSERT_RANDOM_CODE_END
 			}
@@ -1889,12 +1970,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 199:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = ^step_3[i]               // binary NOT operator
 				step_3[i] += step_3[i]               // +
 				step_3[i] *= step_3[i]               // *
-				step_3[i] = step_3[i] ^ step_3[pos2] // XOR
+				step_3[i] = step_3[i] ^ p2 // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 200:
@@ -1916,30 +1998,33 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 202:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				step_3[i] = ^step_3[i]                                  // binary NOT operator
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)              // rotate  bits by 5
 				//INSERT_RANDOM_CODE_END
 			}
 		case 203:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] ^ p2                    // XOR
+				step_3[i] = step_3[i] & p2                    // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)              // rotate  bits by 1
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				//INSERT_RANDOM_CODE_END
 			}
 		case 204:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5)              // rotate  bits by 5
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2)  // rotate  bits by 2
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 205:
@@ -2006,12 +2091,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 212:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2)  // rotate  bits by 2
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 213:
@@ -2024,30 +2110,33 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 214:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]     // XOR
+				step_3[i] = step_3[i] ^ p2     // XOR
 				step_3[i] -= (step_3[i] ^ 97)            // XOR and -
 				step_3[i] = step_3[i] >> (step_3[i] & 3) // shift right
 				step_3[i] = ^step_3[i]                   // binary NOT operator
 				//INSERT_RANDOM_CODE_END
 			}
 		case 215:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2]     // XOR
-				step_3[i] = step_3[i] & step_3[pos2]     // AND
+				step_3[i] = step_3[i] ^ p2     // XOR
+				step_3[i] = step_3[i] & p2     // AND
 				step_3[i] = step_3[i] << (step_3[i] & 3) // shift left
 				step_3[i] *= step_3[i]                   // *
 				//INSERT_RANDOM_CODE_END
 			}
 		case 216:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = ^step_3[i]                                  // binary NOT operator
 				step_3[i] -= (step_3[i] ^ 97)                           // XOR and -
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 217:
@@ -2069,11 +2158,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 219:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4) // rotate  bits by 4
 				step_3[i] = bits.RotateLeft8(step_3[i], 3)             // rotate  bits by 3
-				step_3[i] = step_3[i] & step_3[pos2]                   // AND
+				step_3[i] = step_3[i] & p2                   // AND
 				step_3[i] = bits.Reverse8(step_3[i])                   // reverse bits
 				//INSERT_RANDOM_CODE_END
 			}
@@ -2087,28 +2177,31 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 221:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] = ^step_3[i]                     // binary NOT operator
 				step_3[i] = bits.Reverse8(step_3[i])       // reverse bits
 				//INSERT_RANDOM_CODE_END
 			}
 		case 222:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] >> (step_3[i] & 3) // shift right
 				step_3[i] = step_3[i] << (step_3[i] & 3) // shift left
-				step_3[i] = step_3[i] ^ step_3[pos2]     // XOR
+				step_3[i] = step_3[i] ^ p2     // XOR
 				step_3[i] *= step_3[i]                   // *
 				//INSERT_RANDOM_CODE_END
 			}
 		case 223:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 3)              // rotate  bits by 3
-				step_3[i] = step_3[i] ^ step_3[pos2]                    // XOR
+				step_3[i] = step_3[i] ^ p2                    // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] -= (step_3[i] ^ 97)                           // XOR and -
 				//INSERT_RANDOM_CODE_END
@@ -2132,21 +2225,23 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 226:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.Reverse8(step_3[i]) // reverse bits
 				step_3[i] -= (step_3[i] ^ 97)        // XOR and -
 				step_3[i] *= step_3[i]               // *
-				step_3[i] = step_3[i] ^ step_3[pos2] // XOR
+				step_3[i] = step_3[i] ^ p2 // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 227:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = ^step_3[i]                   // binary NOT operator
 				step_3[i] = step_3[i] << (step_3[i] & 3) // shift left
 				step_3[i] -= (step_3[i] ^ 97)            // XOR and -
-				step_3[i] = step_3[i] & step_3[pos2]     // AND
+				step_3[i] = step_3[i] & p2     // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 228:
@@ -2168,20 +2263,22 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 230:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] *= step_3[i]                                  // *
-				step_3[i] = step_3[i] & step_3[pos2]                    // AND
+				step_3[i] = step_3[i] & p2                    // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i])) // rotate  bits by random
 				//INSERT_RANDOM_CODE_END
 			}
 		case 231:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 3) // rotate  bits by 3
 				step_3[i] = step_3[i] >> (step_3[i] & 3)   // shift right
-				step_3[i] = step_3[i] ^ step_3[pos2]       // XOR
+				step_3[i] = step_3[i] ^ p2       // XOR
 				step_3[i] = bits.Reverse8(step_3[i])       // reverse bits
 				//INSERT_RANDOM_CODE_END
 			}
@@ -2204,12 +2301,13 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 234:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]     // AND
+				step_3[i] = step_3[i] & p2     // AND
 				step_3[i] *= step_3[i]                   // *
 				step_3[i] = step_3[i] >> (step_3[i] & 3) // shift right
-				step_3[i] = step_3[i] ^ step_3[pos2]     // XOR
+				step_3[i] = step_3[i] ^ p2     // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 235:
@@ -2222,11 +2320,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 236:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] ^ step_3[pos2] // XOR
+				step_3[i] = step_3[i] ^ p2 // XOR
 				step_3[i] += step_3[i]               // +
-				step_3[i] = step_3[i] & step_3[pos2] // AND
+				step_3[i] = step_3[i] & p2 // AND
 				step_3[i] -= (step_3[i] ^ 97)        // XOR and -
 				//INSERT_RANDOM_CODE_END
 			}
@@ -2249,39 +2348,43 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 239:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 5) // rotate  bits by 5
 				step_3[i] = bits.RotateLeft8(step_3[i], 1) // rotate  bits by 1
 				step_3[i] *= step_3[i]                     // *
-				step_3[i] = step_3[i] & step_3[pos2]       // AND
+				step_3[i] = step_3[i] & p2       // AND
 				//INSERT_RANDOM_CODE_END
 			}
 		case 240:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = ^step_3[i]                   // binary NOT operator
 				step_3[i] += step_3[i]                   // +
-				step_3[i] = step_3[i] & step_3[pos2]     // AND
+				step_3[i] = step_3[i] & p2     // AND
 				step_3[i] = step_3[i] << (step_3[i] & 3) // shift left
 				//INSERT_RANDOM_CODE_END
 			}
 		case 241:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4)   // rotate  bits by 4
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
-				step_3[i] = step_3[i] ^ step_3[pos2]                     // XOR
+				step_3[i] = step_3[i] ^ p2                     // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 1)               // rotate  bits by 1
 				//INSERT_RANDOM_CODE_END
 			}
 		case 242:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] += step_3[i]               // +
 				step_3[i] += step_3[i]               // +
 				step_3[i] -= (step_3[i] ^ 97)        // XOR and -
-				step_3[i] = step_3[i] ^ step_3[pos2] // XOR
+				step_3[i] = step_3[i] ^ p2 // XOR
 				//INSERT_RANDOM_CODE_END
 			}
 		case 243:
@@ -2348,9 +2451,10 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 250:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
-				step_3[i] = step_3[i] & step_3[pos2]                     // AND
+				step_3[i] = step_3[i] & p2                     // AND
 				step_3[i] = bits.RotateLeft8(step_3[i], int(step_3[i]))  // rotate  bits by random
 				step_3[i] = step_3[i] ^ byte(bits.OnesCount8(step_3[i])) // ones count bits
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 4)   // rotate  bits by 4
@@ -2375,11 +2479,12 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 				//INSERT_RANDOM_CODE_END
 			}
 		case 253:
+			p2 := step_3[pos2]
 			for i := pos1; i < pos2; i++ {
 				//INSERT_RANDOM_CODE_START
 				step_3[i] = bits.RotateLeft8(step_3[i], 3)             // rotate  bits by 3
 				step_3[i] = step_3[i] ^ bits.RotateLeft8(step_3[i], 2) // rotate  bits by 2
-				step_3[i] = step_3[i] ^ step_3[pos2]                   // XOR
+				step_3[i] = step_3[i] ^ p2                   // XOR
 				step_3[i] = bits.RotateLeft8(step_3[i], 3)             // rotate  bits by 3
 				//INSERT_RANDOM_CODE_END
 
@@ -2388,7 +2493,7 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 			}
 
 		case 254, 255: // 0.7% chance of execution every loop
-			rc4s = NewCipher(step_3[:]) // use a new key
+			NewCipherInto(&rc4s, step_3[:]) // use a new key
 			//step_3 = highwayhash.Sum(step_3[:], step_3[:])
 
 			for i := pos1; i < pos2; i++ {
@@ -2441,7 +2546,7 @@ func AstroBWTv3(input []byte) (outputhash [32]byte) {
 	data_len := uint32((tries-4)*256 + (uint64(step_3[253])<<8|uint64(step_3[254]))&0x3ff) // ensure wide  number of variants exists
 
 	//if REFERENCE_MODE {
-	text_32_0alloc(scratch.data[:data_len], scratch.sa[:data_len])
+	text_32_libsais(scratch.data[:data_len], scratch.sa[:data_len])
 	//}
 
 	if LittleEndian {

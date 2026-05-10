@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build *)",
+      "Bash(go test *)",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(go version *)",
+      "Bash(cat)",
+      "Bash(python3 /tmp/hoist.py)",
+      "Bash(go tool *)",
+      "Read(//opt/homebrew/Cellar/libsais/2.10.4/**)",
+      "Read(//opt/homebrew/Cellar/libsais/**)"
+    ]
+  }
+}

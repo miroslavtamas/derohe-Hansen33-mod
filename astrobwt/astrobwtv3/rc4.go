@@ -28,20 +28,27 @@ func (k KeySizeError) Error() string {
 // NewCipher creates and returns a new Cipher. The key argument should be the
 // RC4 key, at least 1 byte and at most 256 bytes.
 func NewCipher(key []byte) Cipher {
+	var c Cipher
+	NewCipherInto(&c, key)
+	return c
+}
+
+// NewCipherInto initializes c in place with the given key, avoiding the
+// ~1KB struct copy that NewCipher's return-by-value triggers in hot paths.
+func NewCipherInto(c *Cipher, key []byte) {
 	k := len(key)
 	if k < 1 || k > 256 {
 		panic("invalid key")
 	}
-	var c Cipher
 	for i := 0; i < 256; i++ {
 		c.s[i] = uint32(i)
 	}
+	c.i, c.j = 0, 0
 	var j uint8 = 0
 	for i := 0; i < 256; i++ {
 		j += uint8(c.s[i]) + key[i%k]
 		c.s[i], c.s[j] = c.s[j], c.s[i]
 	}
-	return c
 }
 
 // Reset zeros the key data and makes the Cipher unusable.

@@ -4,7 +4,7 @@ import "unsafe"
 import "hash"
 import "sync"
 
-import "github.com/minio/sha256-simd"
+import "crypto/sha256"
 
 const MAX_LENGTH uint32 = (256 * 384) - 1 // this is the maximum
 

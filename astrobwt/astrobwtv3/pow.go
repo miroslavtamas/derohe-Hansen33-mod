@@ -11,7 +11,7 @@ import "github.com/dchest/siphash"
 import "github.com/cespare/xxhash"
 
 //import "github.com/minio/highwayhash"
-import "github.com/minio/sha256-simd"
+import "crypto/sha256"
 import "github.com/segmentio/fasthash/fnv1a"
 import "golang.org/x/crypto/salsa20/salsa"
 

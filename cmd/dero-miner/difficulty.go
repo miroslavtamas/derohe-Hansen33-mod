@@ -82,3 +82,41 @@ func CheckPowHashBig(pow_hash crypto.Hash, big_difficulty_integer *big.Int) bool
 	}
 	return false
 }
+
+// DifficultyToTarget computes the 32-byte big-endian target threshold
+// once per job: target = floor(2^256 / difficulty), clamped to fit in
+// 32 bytes. Doing this once per job — rather than per hash inside
+// CheckPowHashBig — lets the per-hash check be a plain byte comparison
+// with no big.Int allocs.
+func DifficultyToTarget(big_difficulty_integer *big.Int) (target [32]byte) {
+	if big_difficulty_integer.Sign() <= 0 {
+		panic("difficulty can never be zero")
+	}
+	t := new(big.Int).Div(oneLsh256, big_difficulty_integer)
+	tb := t.Bytes() // big-endian, leading zeros stripped
+	if len(tb) > 32 {
+		// difficulty == 1 produces 2^256, which doesn't fit in 32 bytes.
+		// Treat as "all hashes pass" by setting target to max value.
+		for i := range target {
+			target[i] = 0xff
+		}
+		return
+	}
+	copy(target[32-len(tb):], tb)
+	return
+}
+
+// CheckPowHashTarget returns true iff pow_hash (interpreted as a
+// little-endian 256-bit integer, matching the existing on-wire format)
+// is numerically <= target (big-endian). Allocation-free.
+func CheckPowHashTarget(pow_hash crypto.Hash, target *[32]byte) bool {
+	// pow_hash[31] is most-significant in big-endian view, target[0] is.
+	for i := 0; i < 32; i++ {
+		a := pow_hash[31-i]
+		b := target[i]
+		if a != b {
+			return a < b
+		}
+	}
+	return true
+}

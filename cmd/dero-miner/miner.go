@@ -585,6 +585,7 @@ func mineblock(tid int) {
 		work[block.MINIBLOCK_SIZE-1] = byte(tid)
 
 		diff.SetString(myjob.Difficulty, 10)
+		target := DifficultyToTarget(&diff)
 
 		if work[0]&0xf != 1 { // check  version
 			logger.Error(nil, "Unknown version, please check for updates", "version", work[0]&0x1f)
@@ -600,7 +601,7 @@ func mineblock(tid int) {
 				powhash := astrobwt_fast.POW_optimized(work[:], scratch)
 				atomic.AddUint64(&counter, 1)
 
-				if CheckPowHashBig(powhash, &diff) == true { // note we are doing a local, NW might have moved meanwhile
+				if CheckPowHashTarget(powhash, &target) { // alloc-free per-hash check
 
 					globals.Console_Only_Logger.Info(fmt.Sprintf(green+"Height: %d "+blue+"Diff: "+green+"%s"+reset_color+": "+green+"Successfully found DERO mini block\t"+red+"("+blue+"going to submit 🏆"+red+")"+reset_color, myjob.Height, myjob.Difficulty))
 
@@ -622,7 +623,7 @@ func mineblock(tid int) {
 				powhash := astrobwtv3.AstroBWTv3(work[:])
 				atomic.AddUint64(&counter, 1)
 
-				if CheckPowHashBig(powhash, &diff) == true { // note we are doing a local, NW might have moved meanwhile
+				if CheckPowHashTarget(powhash, &target) { // alloc-free per-hash check
 
 					globals.Console_Only_Logger.Info(fmt.Sprintf(green+"Height: %d "+blue+"Diff: "+green+"%s"+reset_color+": "+green+"Successfully found DERO mini block\t"+red+"("+blue+"going to submit 🏆"+red+")"+reset_color, myjob.Height, myjob.Difficulty))
 

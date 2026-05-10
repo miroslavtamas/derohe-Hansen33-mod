@@ -10,7 +10,10 @@
       "Bash(python3 /tmp/hoist.py)",
       "Bash(go tool *)",
       "Read(//opt/homebrew/Cellar/libsais/2.10.4/**)",
-      "Read(//opt/homebrew/Cellar/libsais/**)"
+      "Read(//opt/homebrew/Cellar/libsais/**)",
+      "Bash(rm -rf build/dero_*/dero-miner-*)",
+      "Bash(bash build_package.sh \"./cmd/dero-miner\")",
+      "Bash(xargs file *)"
     ]
   }
 }

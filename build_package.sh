@@ -103,22 +103,28 @@ build_env() {
     return
   fi
   # Miner package: try to keep cgo on so libsais ships in the binary.
+  # GOAMD64=v3 unlocks AVX2/BMI2/FMA codegen in the Go compiler. The miner
+  # targets modern hardware so v3 (Haswell+, 2013) is a safe baseline.
+  local extra_env=""
+  if [[ "${goarch}" == "amd64" ]]; then
+    extra_env="GOAMD64=v3 "
+  fi
   if [[ "${goos}" == "${HOST_GOOS}" && "${goarch}" == "${HOST_GOARCH}" ]]; then
-    echo "CGO_ENABLED=1 GOOS=${goos} GOARCH=${goarch}${goarm:+ GOARM=${goarm}}"
+    echo "${extra_env}CGO_ENABLED=1 GOOS=${goos} GOARCH=${goarch}${goarm:+ GOARM=${goarm}}"
     return
   fi
   if [[ "${HAS_ZIG}" == "1" ]]; then
     local ztgt
     ztgt=$(zig_target "${goos}" "${goarch}" "${goarm}")
     if [[ -n "${ztgt}" ]]; then
-      echo "CGO_ENABLED=1 CC=\"zig cc -target ${ztgt}\" CXX=\"zig c++ -target ${ztgt}\" GOOS=${goos} GOARCH=${goarch}${goarm:+ GOARM=${goarm}}"
+      echo "${extra_env}CGO_ENABLED=1 CC=\"zig cc -target ${ztgt}\" CXX=\"zig c++ -target ${ztgt}\" GOOS=${goos} GOARCH=${goarch}${goarm:+ GOARM=${goarm}}"
       return
     fi
     echo "WARN: no zig target mapping for ${label}; using pure-Go SA-IS fallback (slower miner)" >&2
   else
     echo "WARN: ${label} cross-build without zig; using pure-Go SA-IS fallback (slower miner). Install zig for cgo cross-builds." >&2
   fi
-  echo "CGO_ENABLED=0 GOOS=${goos} GOARCH=${goarch}${goarm:+ GOARM=${goarm}}"
+  echo "${extra_env}CGO_ENABLED=0 GOOS=${goos} GOARCH=${goarch}${goarm:+ GOARM=${goarm}}"
 }
 
 

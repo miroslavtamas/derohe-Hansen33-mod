@@ -5,11 +5,31 @@ package astrobwtv3
 
 /*
 #cgo CFLAGS: -O3 -DNDEBUG -I${SRCDIR}/libsais
+#cgo amd64 CFLAGS: -march=haswell
 #include "libsais/libsais.h"
 */
 import "C"
 
-import "unsafe"
+import (
+	"sync"
+	"unsafe"
+)
+
+// libsais maintains an internal scratch (free space) used while building
+// the suffix array. The no-ctx libsais entry point allocates and frees that
+// scratch on every call. libsais_ctx lets us pre-allocate once and reuse.
+// We keep one context per goroutine via a sync.Pool so the SA pool and the
+// libsais pool stay decoupled from each other and from sa_fast.go's
+// ScratchData lifecycle.
+var libsaisCtxPool = sync.Pool{
+	New: func() interface{} {
+		ctx := C.libsais_create_ctx()
+		if ctx == nil {
+			panic("libsais_create_ctx returned NULL")
+		}
+		return ctx
+	},
+}
 
 // text_32_libsais constructs the suffix array of `text` into `sa` using
 // the vendored libsais sources compiled in via cgo. Output is identical
@@ -22,14 +42,17 @@ func text_32_libsais(text []byte, sa []int32) {
 	if len(text) == 0 {
 		return
 	}
-	ret := C.libsais(
+	ctx := libsaisCtxPool.Get().(unsafe.Pointer)
+	ret := C.libsais_ctx(
+		ctx,
 		(*C.uint8_t)(unsafe.Pointer(&text[0])),
 		(*C.int32_t)(unsafe.Pointer(&sa[0])),
 		C.int32_t(len(text)),
 		0,
 		nil,
 	)
+	libsaisCtxPool.Put(ctx)
 	if ret != 0 {
-		panic("libsais failed")
+		panic("libsais_ctx failed")
 	}
 }

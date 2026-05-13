@@ -13,7 +13,8 @@
       "Read(//opt/homebrew/Cellar/libsais/**)",
       "Bash(rm -rf build/dero_*/dero-miner-*)",
       "Bash(bash build_package.sh \"./cmd/dero-miner\")",
-      "Bash(xargs file *)"
+      "Bash(xargs file *)",
+      "Bash(/tmp/dero-miner-baseline --bench)"
     ]
   }
 }

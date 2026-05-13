@@ -466,12 +466,13 @@ func random_execution(wg *sync.WaitGroup, iterations int) {
 	//threadaffinity()
 
 	scratch := astrobwt_fast.Pool.Get().(*astrobwt_fast.ScratchData)
+	v3scratch := astrobwtv3.Pool.Get().(*astrobwtv3.ScratchData)
 	rand.Read(workbuf[:])
 	_ = scratch
 
 	for i := 0; i < iterations; i++ {
 		//_ = astrobwt_fast.POW_optimized(workbuf[:], scratch)
-		_ = astrobwtv3.AstroBWTv3(workbuf[:])
+		_ = astrobwtv3.AstroBWTv3WithScratch(workbuf[:], v3scratch)
 	}
 	wg.Done()
 	runtime.UnlockOSThread()
@@ -554,7 +555,11 @@ func mineblock(tid int) {
 
 	rand.Read(random_buf[:])
 
+	// Per-goroutine scratch buffers. Keeping these alive for the lifetime
+	// of the mining goroutine avoids the per-hash sync.Pool round-trip and
+	// the associated defer setup inside AstroBWTv3.
 	scratch := astrobwt_fast.Pool.Get().(*astrobwt_fast.ScratchData)
+	v3scratch := astrobwtv3.Pool.Get().(*astrobwtv3.ScratchData)
 
 	time.Sleep(5 * time.Second)
 
@@ -565,6 +570,12 @@ func mineblock(tid int) {
 	var local_job_counter int64
 
 	i := uint32(0)
+
+	// counterFlushMask: flush the per-thread hash counter every
+	// (counterFlushMask+1) hashes. Batching trades a tiny amount of
+	// hashrate-display lag for far fewer atomic ops on the shared
+	// `counter` cache line — important on big-core-count machines.
+	const counterFlushMask = uint32(0x7f) // 128 hashes per flush
 
 	for {
 		mutex.RLock()
@@ -593,13 +604,19 @@ func mineblock(tid int) {
 			continue
 		}
 
+		var local_count uint64
+
 		if int64(height) < globals.Config.MAJOR_HF2_HEIGHT {
-			for local_job_counter == job_counter { // update job when it comes, expected rate 1 per second
+			for local_job_counter == atomic.LoadInt64(&job_counter) { // update job when it comes, expected rate 1 per second
 				i++
 				binary.BigEndian.PutUint32(nonce_buf, i)
 
 				powhash := astrobwt_fast.POW_optimized(work[:], scratch)
-				atomic.AddUint64(&counter, 1)
+				local_count++
+				if i&counterFlushMask == 0 {
+					atomic.AddUint64(&counter, local_count)
+					local_count = 0
+				}
 
 				if CheckPowHashTarget(powhash, &target) { // alloc-free per-hash check
 
@@ -616,12 +633,16 @@ func mineblock(tid int) {
 			}
 		} else {
 
-			for local_job_counter == job_counter { // update job when it comes, expected rate 1 per second
+			for local_job_counter == atomic.LoadInt64(&job_counter) { // update job when it comes, expected rate 1 per second
 				i++
 				binary.BigEndian.PutUint32(nonce_buf, i)
 
-				powhash := astrobwtv3.AstroBWTv3(work[:])
-				atomic.AddUint64(&counter, 1)
+				powhash := astrobwtv3.AstroBWTv3WithScratch(work[:], v3scratch)
+				local_count++
+				if i&counterFlushMask == 0 {
+					atomic.AddUint64(&counter, local_count)
+					local_count = 0
+				}
 
 				if CheckPowHashTarget(powhash, &target) { // alloc-free per-hash check
 
@@ -637,6 +658,11 @@ func mineblock(tid int) {
 				}
 			}
 
+		}
+
+		// flush any remaining locally-counted hashes on job change
+		if local_count != 0 {
+			atomic.AddUint64(&counter, local_count)
 		}
 	}
 }

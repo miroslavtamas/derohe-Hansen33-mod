@@ -30,13 +30,23 @@ const REFERENCE_MODE = true
 var ops [256]int
 var steps = map[uint64]int{}
 
-// this will generate a hash
-func AstroBWTv3(input []byte) (outputhash [32]byte) {
+// AstroBWTv3 hashes input using the shared ScratchData pool. Hot-path
+// callers should prefer AstroBWTv3WithScratch and keep one ScratchData
+// per goroutine, which avoids the per-call Pool.Get/Put round-trip
+// and the associated defer setup.
+func AstroBWTv3(input []byte) [32]byte {
+	scratch := Pool.Get().(*ScratchData)
+	out := AstroBWTv3WithScratch(input, scratch)
+	Pool.Put(scratch)
+	return out
+}
+
+// AstroBWTv3WithScratch is the AstroBWTv3 implementation parameterised
+// over scratch space. The scratch buffer must not be shared across
+// concurrent calls.
+func AstroBWTv3WithScratch(input []byte, scratch *ScratchData) (outputhash [32]byte) {
 
 	//var static_key = [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}
-
-	scratch := Pool.Get().(*ScratchData)
-	defer Pool.Put(scratch)
 
 	defer func() {
 		if r := recover(); r != nil { // if something happens due to RAM issues in miner, we should continue, avoiding crashes if possible
